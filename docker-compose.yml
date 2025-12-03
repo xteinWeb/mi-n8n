@@ -7,7 +7,7 @@ services:
       - "${PORT:-5678}:5678"
     environment:
       - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://${RAILWAY_STATIC_URL}
+      - WEBHOOK_URL=https://mi-n8n-production-c228.up.railway.app
       - N8N_METRICS=false
       - EXECUTIONS_DATA_PRUNE=true
       - EXECUTIONS_DATA_MAX_AGE=168
