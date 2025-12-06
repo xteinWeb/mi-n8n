@@ -1,21 +1,11 @@
-#No modificar este archivo.
-
 FROM n8nio/n8n:latest
 
-USER root
-
-# Instalar Node.js para el healthcheck
-RUN which node || (apt-get update && apt-get install -y nodejs)
-
-# VARIABLES DE ENTORNO - WEBHOOK_URL IMPORTANTE
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PROTOCOL=https
-ENV N8N_PORT=5678
-# ENV WEBHOOK_URL=https://mi-n8n-production-c228.up.railway.app
-# NOTA: WEBHOOK_URL mejor en Railway Variables, no aquí
-
+# Solo copiar scripts, NO instalar dependencias aquí
 COPY healthcheck.js /healthcheck.js
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
 
-EXPOSE 5678 8080
+EXPOSE 5678
 
-CMD sh -c 'node /healthcheck.js & n8n start'
+# Usar script de inicio que maneja auto-reparación
+CMD ["/startup.sh"]
