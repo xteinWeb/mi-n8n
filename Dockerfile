@@ -7,8 +7,6 @@ USER root
 # Instalar Node.js para el healthcheck
 RUN which node || (apt-get update && apt-get install -y nodejs)
 
-RUN npm install -g xml2js
-RUN npm install -g tedious
 # VARIABLES DE ENTORNO - WEBHOOK_URL IMPORTANTE
 ENV N8N_HOST=0.0.0.0
 ENV N8N_PROTOCOL=https
