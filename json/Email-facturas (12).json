@@ -1,0 +1,907 @@
+{
+  "name": "Email-facturas",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        832
+      ],
+      "id": "f4daf8e4-b4ef-403a-b038-f3f00934ce73",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ThTszQznllDsEEUG",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "={{$json._metadata.zipFiles[0]}}"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        816
+      ],
+      "id": "cae24565-e172-43fe-80ca-f0737d1742c0",
+      "name": "Compression"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.from['value'][0].address }}",
+        "subject": "=Corrección - {{ $json.subject.split(';')[1] || '' }} {{ $json.subject.split(';')[2] || '' }}",
+        "message": "Agradezco el envío de la información solicitada. Sin embargo, al revisar los archivos adjuntos, notamos que el formato recibido no corresponde al formato .ZIP requerido para su correcto procesamiento en nuestro sistema. Para evitar retrasos y asegurar la validación, por favor, les solicitamos reenviar el archivo desde tu facturador electrónico para poder aceptar los eventos ante la DIAN. Agradezco su atención y rápida corrección.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -48,
+        1104
+      ],
+      "id": "0dcacfbc-d561-40bc-811f-d61bdf19f73a",
+      "name": "Send a message",
+      "webhookId": "a67e034e-6be0-4a51-a0ae-fe10722ffe37",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ThTszQznllDsEEUG",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.file_0.fileType }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c05a5056-23d8-4881-a260-2f2cb9a9593d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "beb75234-991f-45a5-84f8-0f0e22836ea3",
+                    "leftValue": "={{ $binary.file_1.fileExtension }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        1376,
+        816
+      ],
+      "id": "46a3c397-9ce9-4c6f-80f2-501c41a270f3",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "xml",
+        "binaryPropertyName": "file_1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        656
+      ],
+      "id": "b287dd67-f318-4e21-9c25-d6e58842a695",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10bcw4Rgh2k7kriVuBL7wKo7Zq6-Oy5u3rUedwwKpIs4",
+          "mode": "list",
+          "cachedResultName": "RELACION DE FACTURAS",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10bcw4Rgh2k7kriVuBL7wKo7Zq6-Oy5u3rUedwwKpIs4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "147989472",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "NIT": "={{ $json.subject.nit_email }}",
+            "FACTURA": "={{ $json.subject.factura_email }}",
+            "VALOR": "={{ $json.VALOR_NETO_PAGAR }}",
+            "FECHA": "={{ $json.datos_factura.FECHA }}",
+            "PROVEEDOR": "={{$json.subject.proveedor_email  }}",
+            "CORREO DE ENVIO": "="
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "FECHA",
+              "displayName": "FECHA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CORREO DE ENVIO",
+              "displayName": "CORREO DE ENVIO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "PROVEEDOR",
+              "displayName": "PROVEEDOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NIT",
+              "displayName": "NIT",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "FACTURA",
+              "displayName": "FACTURA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "VALOR",
+              "displayName": "VALOR",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ESTADO",
+              "displayName": "ESTADO",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "CORRECIÓN ",
+              "displayName": "CORRECIÓN ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ESTADO CORRECIÓN",
+              "displayName": "ESTADO CORRECIÓN",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "No. OC",
+              "displayName": "No. OC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "No. ENTRADA",
+              "displayName": "No. ENTRADA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "OBSERVACION",
+              "displayName": "OBSERVACION",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "RESPUESTA COMPRAS",
+              "displayName": "RESPUESTA COMPRAS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "cellFormat": "USER_ENTERED"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3376,
+        784
+      ],
+      "id": "a7d0ab5f-027b-4fd3-8638-0aa104403b6a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O87BfFZcZ7F2FkDz",
+          "name": "Google Sheets account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xml",
+        "binaryPropertyName": "file_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        976
+      ],
+      "id": "63ee6798-05bd-4c58-a1ed-c429d7508973",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "file_1",
+        "name": "={{ $json.subject.factura_email }} - {{ $json.subject.proveedor_email }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Kk2EfKKVCq7hW6hYOMQqt3yZbeZkMSGc",
+          "mode": "list",
+          "cachedResultName": "FACTURAS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Kk2EfKKVCq7hW6hYOMQqt3yZbeZkMSGc"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3360,
+        304
+      ],
+      "id": "2d21b396-4a78-4604-97b6-49b9b11102b2",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7luXo7pTtDEKa7iD",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "DECLARE @resultado NVARCHAR(500);\nDECLARE @status INT;\n\n\n\nEXEC [dbo].[RECEPCION_FACTURA]\n    @NO_FACTURA = '{{ $json.subject.factura_email }}',\n    @PROVEEDOR = '{{ $json.datos_factura.PROVEEDOR }}',\n    @NIT = '{{$json.subject.nit_email}}',\n    @FECHA_ENVIO = '{{ $json.FECHA }}',\n    @ESTADO_FACTURA = 'PENDIENTE',\n    @TOTAL_PAGAR = '{{ $json.VALOR_NETO_PAGAR }}',\n    @PORCENTAJE_IVA = '{{ $json.iva_porcentaje }}',\n    @TOTAL_IVA = '{{ $json.iva_valor }}',\n    @TOTAL_SIN_IMPUESTOS = '{{ $json.total_antes_impuestos }}',\n    \n    @NOMBRE_ARCHIVO = '{{ $json.FACTURA}} - {{$json.PROVEEDOR }}.pdf',\n    @PRODUCTOS = '{{ $json.datos_factura.PRODUCTOS.toJsonString() }}',\n    @MENSAJE_RESULTADO = @resultado OUTPUT,\n    @STATUS_CODE = @status OUTPUT;\n\nSELECT @resultado as mensaje, @status as status;"
+      },
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [
+        2352,
+        1136
+      ],
+      "id": "76375d80-46f3-48a2-bb97-2f1c98ad2bc4",
+      "name": "Microsoft SQL1",
+      "credentials": {
+        "microsoftSql": {
+          "id": "DeI4ALiYt4XsNuzS",
+          "name": "Microsoft SQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentItem = items[0];\nconst xmlContent = currentItem.json.data;\n\n// Función para extraer los productos del XML\nconst extractProducts = (xml) => {\n  const products = [];\n  \n  // Buscar todas las líneas de factura (InvoiceLine)\n  const invoiceLineRegex = /<cac:InvoiceLine[\\s\\S]*?<\\/cac:InvoiceLine>/gi;\n  const invoiceLines = xml.match(invoiceLineRegex) || [];\n  \n  invoiceLines.forEach((line, index) => {\n    try {\n      // Extraer información del producto\n      const lineIdMatch = line.match(/<cbc:ID[^>]*>([^<]+)<\\/cbc:ID>/i);\n      const descriptionMatch = line.match(/<cbc:Description[^>]*>([^<]+)<\\/cbc:Description>/i);\n      const quantityMatch = line.match(/<cbc:InvoicedQuantity[^>]*unitCode=\"([^\"]*)\"[^>]*>([^<]+)<\\/cbc:InvoicedQuantity>/i);\n      const priceMatch = line.match(/<cbc:PriceAmount[^>]*currencyID=\"([^\"]*)\"[^>]*>([^<]+)<\\/cbc:PriceAmount>/i);\n      const itemCodeMatch = line.match(/<cbc:ID[^>]*schemeID=\"999\"[^>]*>([^<]+)<\\/cbc:ID>/i) || \n                           line.match(/<cac:SellersItemIdentification>.*?<cbc:ID>([^<]+)<\\/cbc:ID>/si);\n      const lineAmountMatch = line.match(/<cbc:LineExtensionAmount[^>]*currencyID=\"([^\"]*)\"[^>]*>([^<]+)<\\/cbc:LineExtensionAmount>/i);\n      const taxAmountMatch = line.match(/<cbc:TaxAmount[^>]*currencyID=\"([^\"]*)\"[^>]*>([^<]+)<\\/cbc:TaxAmount>/i);\n      \n      const product = {\n        numero_linea: lineIdMatch ? lineIdMatch[1].trim() : (index + 1).toString(),\n        codigo: itemCodeMatch ? itemCodeMatch[1].trim() : \"\",\n        descripcion: descriptionMatch ? descriptionMatch[1].trim() : \"Sin descripción\",\n        cantidad: quantityMatch ? parseFloat(quantityMatch[2].trim()).toString() : \"0\",\n        unidad_medida: quantityMatch ? quantityMatch[1].trim() : \"UND\",\n        precio_unitario: priceMatch ? priceMatch[2].trim() : \"0\",\n        moneda: priceMatch ? priceMatch[1].trim() : \"COP\",\n        valor_total: lineAmountMatch ? lineAmountMatch[2].trim() : \"0\",\n        iva_porcentaje: \"\", // Se puede extraer si está en la línea\n        iva_valor: taxAmountMatch ? taxAmountMatch[2].trim() : \"0\"\n      };\n      \n      // Buscar porcentaje de IVA en esta línea específica\n      const percentMatch = line.match(/<cbc:Percent[^>]*>([\\d.]+)<\\/cbc:Percent>/i);\n      if (percentMatch) {\n        product.iva_porcentaje = percentMatch[1].trim();\n      }\n      \n      products.push(product);\n    } catch (error) {\n      console.error(`Error extrayendo producto línea ${index + 1}:`, error);\n    }\n  });\n  \n  return products;\n};\n\n// Extraer productos\nconst productosExtraidos = extractProducts(xmlContent);\n\n// Extracción directa con patrones específicos\nconst extractedData = {\n  PROVEEDOR: (xmlContent.match(/<cbc:RegistrationName[^>]*>([^<]+)<\\/cbc:RegistrationName>/i) || [])[1] || \"\",\n  \n  // NIT con dígito - buscar específicamente el patrón completo\n  NIT: (() => {\n    // Buscar NIT completo con dígito (ej: 860040094-3)\n    const nitCompleto = xmlContent.match(/(\\d{8,10})-(\\d)/);\n    if (nitCompleto) {\n      // Verificar que sea del emisor (schemeID=\"3\")\n      const nitBase = nitCompleto[1];\n      const tieneSchemeID = xmlContent.includes(`schemeID=\"3\"`) && \n                           xmlContent.includes(`>${nitBase}<`);\n      \n      if (tieneSchemeID) {\n        return `${nitBase}-${nitCompleto[2]}`;\n      }\n      return `${nitBase}-${nitCompleto[2]}`;\n    }\n    \n    // Si no se encuentra con guion, buscar solo el número\n    const nitSolo = xmlContent.match(/<cbc:CompanyID[^>]*schemeID=\"3\"[^>]*>(\\d{8,10})<\\/cbc:CompanyID>/i);\n    return nitSolo ? nitSolo[1] : \"\";\n  })(),\n  \n  FACTURA: (xmlContent.match(/<cbc:ID[^>]*>(\\d{8,})<\\/cbc:ID>/i) || [])[1] || \n           (xmlContent.match(/2117\\d{5}/) || [])[0] || \"\",\n  \n  FECHA: (xmlContent.match(/<cbc:IssueDate[^>]*>(\\d{4}-\\d{2}-\\d{2})<\\/cbc:IssueDate>/i) || [])[1] || \"\",\n  \n  total_antes_impuestos: (xmlContent.match(/<cbc:TaxExclusiveAmount[^>]*currencyID=\"COP\"[^>]*>([\\d.]+)<\\/cbc:TaxExclusiveAmount>/i) || [])[1] || \"0\",\n  \n  iva_porcentaje: (xmlContent.match(/<cbc:Percent[^>]*>([\\d.]+)<\\/cbc:Percent>/i) || [])[1] || \"0\",\n  \n  iva_valor: (xmlContent.match(/<cbc:TaxAmount[^>]*currencyID=\"COP\"[^>]*>([\\d.]+)<\\/cbc:TaxAmount>/i) || [])[1] || \"0\",\n  \n  VALOR: (xmlContent.match(/<cbc:PayableAmount[^>]*currencyID=\"COP\"[^>]*>([\\d.]+)<\\/cbc:PayableAmount>/i) || [])[1] || \"0\",\n  \n  // AÑADIDO: Extracción de Retención en la Fuente (TaxAmount dentro de WithholdingTaxTotal)\n  rete_valor: (xmlContent.match(/<cac:WithholdingTaxTotal>[\\s\\S]*?<cbc:TaxAmount[^>]*currencyID=\"COP\"[^>]*>([\\d.]+)<\\/cbc:TaxAmount>/i) || [])[1] || \"0\",\n  \n  // Nuevo campo para productos\n  PRODUCTOS: productosExtraidos,\n  \n  // Información del cliente\n  CLIENTE: (xmlContent.match(/<cbc:RegistrationName[^>]*schemeID=\"1\"[^>]*>([^<]+)<\\/cbc:RegistrationName>/i) || [])[1] || \"\",\n  \n  NIT_CLIENTE: (() => {\n    const nitCliente = xmlContent.match(/<cbc:CompanyID[^>]*schemeID=\"1\"[^>]*>(\\d{8,10})<\\/cbc:CompanyID>/i);\n    return nitCliente ? nitCliente[1] : \"\";\n  })(),\n  \n  // Resumen de productos\n  total_productos: productosExtraidos.length.toString(),\n  valor_total_productos: productosExtraidos.reduce((sum, prod) => sum + parseFloat(prod.valor_total || 0), 0).toFixed(2)\n};\n\n// AÑADIDO: Lógica de cálculo del valor neto a pagar\nconst totalPagar = parseFloat(extractedData.VALOR || \"0\");\nconst retencionValor = parseFloat(extractedData.rete_valor || \"0\");\nconst valorNetoPagar = totalPagar - retencionValor;\n\n// AÑADIDO: Agregar el valor neto a los datos extraídos\nextractedData.VALOR_NETO_PAGAR = valorNetoPagar.toString();\n\n// Función de formateo\nconst format = (val) => {\n  const num = parseFloat(val || 0);\n  return isNaN(num) ? \"0,00\" : \n    num.toFixed(2).replace(/\\d(?=(\\d{3})+\\.)/g, '$&.').replace('.', ',');\n};\n\n// Formatear valores numéricos\nextractedData.total_antes_impuestos = format(extractedData.total_antes_impuestos);\nextractedData.iva_valor = format(extractedData.iva_valor);\nextractedData.VALOR = format(extractedData.VALOR);\nextractedData.valor_total_productos = format(extractedData.valor_total_productos);\nextractedData.iva_porcentaje = extractedData.iva_porcentaje ? \n  `${extractedData.iva_porcentaje.replace('.', ',')}%` : \"0,00%\";\n\n// AÑADIDO: Formatear el nuevo campo VALOR_NETO_PAGAR y la Retención\nextractedData.rete_valor = format(extractedData.rete_valor);\nextractedData.VALOR_NETO_PAGAR = format(extractedData.VALOR_NETO_PAGAR);\n\n// Formatear productos individualmente\nextractedData.PRODUCTOS = extractedData.PRODUCTOS.map(producto => ({\n  ...producto,\n  precio_unitario: format(producto.precio_unitario),\n  valor_total: format(producto.valor_total),\n  iva_valor: format(producto.iva_valor),\n  iva_porcentaje: producto.iva_porcentaje ? \n    `${producto.iva_porcentaje.replace('.', ',')}%` : \"0,00%\"\n}));\n\n// Verificar NIT\nif (extractedData.NIT && !extractedData.NIT.includes('-')) {\n  const regex = new RegExp(`${extractedData.NIT}\\\\s*-\\\\s*(\\\\d)`, 'i');\n  const match = xmlContent.match(regex);\n  if (match) {\n    extractedData.NIT = `${extractedData.NIT}-${match[1]}`;\n  }\n}\n\n// Verificar NIT cliente\nif (extractedData.NIT_CLIENTE && !extractedData.NIT_CLIENTE.includes('-')) {\n  const regex = new RegExp(`${extractedData.NIT_CLIENTE}\\\\s*-\\\\s*(\\\\d)`, 'i');\n  const match = xmlContent.match(regex);\n  if (match) {\n    extractedData.NIT_CLIENTE = `${extractedData.NIT_CLIENTE}-${match[1]}`;\n  }\n}\n\n// 🔥 RETORNAR AMBOS: JSON + BINARY\nreturn [\n  {\n    json: {\n      // Mantener datos anteriores si existen\n      \n      \n      // Agregar datos extraídos del XML\n      datos_factura: extractedData,\n      \n      // También puedes agregarlos directamente al nivel superior\n      PROVEEDOR: extractedData.PROVEEDOR,\n      NIT: extractedData.NIT,\n      FACTURA: extractedData.FACTURA,\n      FECHA: extractedData.FECHA,\n      total_antes_impuestos: extractedData.total_antes_impuestos,\n      iva_porcentaje: extractedData.iva_porcentaje,\n      iva_valor: extractedData.iva_valor,\n      VALOR: extractedData.VALOR,\n      CLIENTE: extractedData.CLIENTE,\n      NIT_CLIENTE: extractedData.NIT_CLIENTE,\n      total_productos: extractedData.total_productos,\n      valor_total_productos: extractedData.valor_total_productos,\n      \n      // AÑADIDO: Retención y Valor Neto\n      rete_valor: extractedData.rete_valor,\n      VALOR_NETO_PAGAR: extractedData.VALOR_NETO_PAGAR,\n      \n      // Nuevo campo de productos\n      PRODUCTOS: JSON.stringify(extractedData.PRODUCTOS),\n      \n      // Metadatos\n      xml_procesado_en: new Date().toISOString(),\n      total_lineas_factura: extractedData.PRODUCTOS.length\n    },\n    \n    // 🔥 MANTENER EL BINARY DATA (si existe)\n    binary: currentItem.binary\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        816
+      ],
+      "id": "637376f1-7ca9-4160-8069-c4cee1612aba",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2560,
+        800
+      ],
+      "id": "982b510d-a89b-4bab-a3c9-4284d4758dbe",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "511c71c9-f89e-4ffa-97e8-238dd27a1895",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2976,
+        800
+      ],
+      "id": "e049c886-2508-41d3-87b0-fa38d9cd9c87",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "167417fd-5cca-4b79-8dcb-ccfdf10a0b9b",
+              "leftValue": "={{ $binary.file_1 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3104,
+        512
+      ],
+      "id": "563f36a5-b7b5-4a21-a255-a5057264140f",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "file_0",
+        "name": "={{ $json.subject.factura_email }} - {{ $json.subject.proveedor_email }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1Kk2EfKKVCq7hW6hYOMQqt3yZbeZkMSGc",
+          "mode": "list",
+          "cachedResultName": "FACTURAS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1Kk2EfKKVCq7hW6hYOMQqt3yZbeZkMSGc"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        3376,
+        592
+      ],
+      "id": "f9cf0eec-31bb-4faf-8555-1cb80ab5ec9a",
+      "name": "Upload file2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "7luXo7pTtDEKa7iD",
+          "name": "Google Drive account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let info = $input.first().json.headers.subject;\nlet json = {  };\nlet nit1 = info.split(';')[0].split(':');\nlet nit2 = nit1[nit1.length - 1];\njson.subject = {\n    factura_email: info.split(';')[2],\n    nit_email: nit2,\n  \n    proveedor_email: info.split(';')[1]\n};\n\nreturn  json;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1168,
+        1184
+      ],
+      "id": "8be060d4-664d-4a8c-b852-c76e6a1f90d3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2000,
+        1136
+      ],
+      "id": "46ff889e-7b4e-4043-99b4-a591ea3b9a72",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=$binary",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        816
+      ],
+      "id": "a93bcb9b-e15e-4cd1-bea6-a7d80cc6607f",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "batchSize": "={{ $json.totalAttachments }}",
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -336,
+        1216
+      ],
+      "id": "568fd61f-d319-4e46-b43e-d1f535ede923",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first();\nconst binary = item.binary || {};\n\n// Filtrar solo ZIPs\nconst zipBinary = {};\nlet zipCount = 0;\n\nObject.entries(binary).forEach(([key, fileData]) => {\n  const fileName = (fileData.fileName || key).toLowerCase();\n  \n  if (fileName.endsWith('.zip')) {\n    zipBinary[key] = fileData;\n    zipCount++;\n    \n    // Opcional: renombrar para claridad\n    zipBinary[key].fileName = `ZIP_${zipCount}_${fileData.fileName || key}`;\n  }\n});\n\n// Retornar resultado\nreturn {\n  _metadata: {\n    originalBinaryCount: Object.keys(binary).length,\n    zipFilesCount: zipCount,\n    zipFiles: Object.keys(zipBinary)\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        688
+      ],
+      "id": "cc86988e-2dea-437e-8955-2938de46136d",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8800c926-b747-4e90-ac6e-b600f5a90d1b",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -544,
+        544
+      ],
+      "id": "29441bed-c27a-4b59-a6ca-a0225f99855c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        816
+      ],
+      "id": "768e1d6f-bd6c-41ba-87f5-fce1d9b9c33a",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4dccac52-d2c1-408b-82c5-96e14d430cb8",
+              "leftValue": "={{ $json._metadata.zipFilesCount }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        688
+      ],
+      "id": "2eecc82a-2c22-43ac-8b70-8e8f426b7e2a",
+      "name": "If2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Compression": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft SQL1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upload file2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Microsoft SQL1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Compression",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "0121dd74-d228-4e35-9b68-6e6c25accf2f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3797679587aed68b9866de6fac72b202e16ea7c56bd268120113fe8918da7f9d"
+  },
+  "id": "TScK5jPrVRf447MP",
+  "tags": []
+}
